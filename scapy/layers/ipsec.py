@@ -95,12 +95,15 @@ class AH(Packet):
         IPv6ExtHdrRouting: {'nh': socket.IPPROTO_AH},
     }
 
+
 bind_layers(IP, AH, proto=socket.IPPROTO_AH)
 bind_layers(IPv6, AH, nh=socket.IPPROTO_AH)
 bind_layers(AH, IP, nh=socket.IPPROTO_IP)
 bind_layers(AH, IPv6, nh=socket.IPPROTO_IPV6)
 
 #------------------------------------------------------------------------------
+
+
 class ESP(Packet):
     """
     Encapsulated Security Payload
@@ -123,12 +126,15 @@ class ESP(Packet):
         IPv6ExtHdrRouting: {'nh': socket.IPPROTO_ESP},
     }
 
+
 bind_layers(IP, ESP, proto=socket.IPPROTO_ESP)
 bind_layers(IPv6, ESP, nh=socket.IPPROTO_ESP)
 bind_layers(UDP, ESP, dport=4500)  # NAT-Traversal encapsulation
 bind_layers(UDP, ESP, sport=4500)  # NAT-Traversal encapsulation
 
 #------------------------------------------------------------------------------
+
+
 class _ESPPlain(Packet):
     """
     Internal class to represent unencrypted ESP packets.
@@ -151,6 +157,7 @@ class _ESPPlain(Packet):
     def data_for_encryption(self):
         return str(self.data) + self.padding + chr(self.padlen) + chr(self.nh)
 
+
 #------------------------------------------------------------------------------
 if conf.crypto_valid:
     from cryptography.exceptions import InvalidTag
@@ -168,6 +175,8 @@ else:
     Cipher = algorithms = modes = None
 
 #------------------------------------------------------------------------------
+
+
 def _lcm(a, b):
     """
     Least Common Multiple between 2 integers.
@@ -176,6 +185,7 @@ def _lcm(a, b):
         return 0
     else:
         return abs(a * b) / gcd(a, b)
+
 
 class CryptAlgo(object):
     """
@@ -318,7 +328,8 @@ class CryptAlgo(object):
         # with the RFC
         payload_len = len(esp.iv) + len(esp.data) + len(esp.padding) + 2
         if payload_len % 4 != 0:
-            raise ValueError('The size of the ESP data is not aligned to 32 bits after padding.')
+            raise ValueError(
+                'The size of the ESP data is not aligned to 32 bits after padding.')
 
         return esp
 
@@ -394,17 +405,18 @@ class CryptAlgo(object):
         padding = data[len(data) - padlen - 2: len(data) - 2]
 
         return _ESPPlain(spi=esp.spi,
-                        seq=esp.seq,
-                        iv=iv,
-                        data=data,
-                        padding=padding,
-                        padlen=padlen,
-                        nh=nh,
-                        icv=icv)
+                         seq=esp.seq,
+                         iv=iv,
+                         data=data,
+                         padding=padding,
+                         padlen=padlen,
+                         nh=nh,
+                         icv=icv)
 
 #------------------------------------------------------------------------------
 # The names of the encryption algorithms are the same than in scapy.contrib.ikev2
 # see http://www.iana.org/assignments/ikev2-parameters/ikev2-parameters.xhtml
+
 
 CRYPT_ALGOS = {
     'NULL': CryptAlgo('NULL', cipher=None, mode=None, iv_size=0),
@@ -462,15 +474,19 @@ if conf.crypto_valid:
     from cryptography.hazmat.primitives.cmac import CMAC
     from cryptography.hazmat.primitives import hashes
 else:
-    # no error if cryptography is not available but authentication won't be supported
+    # no error if cryptography is not available but authentication won't be
+    # supported
     HMAC = CMAC = hashes = None
 
 #------------------------------------------------------------------------------
+
+
 class IPSecIntegrityError(Exception):
     """
     Error risen when the integrity check fails.
     """
     pass
+
 
 class AuthAlgo(object):
     """
@@ -581,6 +597,7 @@ class AuthAlgo(object):
 # The names of the integrity algorithms are the same than in scapy.contrib.ikev2
 # see http://www.iana.org/assignments/ikev2-parameters/ikev2-parameters.xhtml
 
+
 AUTH_ALGOS = {
     'NULL': AuthAlgo('NULL', mac=None, digestmod=None, icv_size=0),
 }
@@ -610,12 +627,14 @@ if HMAC and hashes:
                                          icv_size=12)
 if CMAC and algorithms:
     AUTH_ALGOS['AES-CMAC-96'] = AuthAlgo('AES-CMAC-96',
-                                      mac=CMAC,
-                                      digestmod=algorithms.AES,
-                                      icv_size=12,
-                                      key_size=(16,))
+                                         mac=CMAC,
+                                         digestmod=algorithms.AES,
+                                         icv_size=12,
+                                         key_size=(16,))
 
 #------------------------------------------------------------------------------
+
+
 def split_for_transport(orig_pkt, transport_proto):
     """
     Split an IP(v6) packet in the correct location to insert an ESP or AH
@@ -664,17 +683,20 @@ def split_for_transport(orig_pkt, transport_proto):
 
         return header, nh, next_hdr
 
+
 #------------------------------------------------------------------------------
 # see RFC 4302 - Appendix A. Mutability of IP Options/Extension Headers
 IMMUTABLE_IPV4_OPTIONS = (
-    0, # End Of List
-    1, # No OPeration
-    2, # Security
-    5, # Extended Security
-    6, # Commercial Security
-    20, # Router Alert
-    21, # Sender Directed Multi-Destination Delivery
+    0,  # End Of List
+    1,  # No OPeration
+    2,  # Security
+    5,  # Extended Security
+    6,  # Commercial Security
+    20,  # Router Alert
+    21,  # Sender Directed Multi-Destination Delivery
 )
+
+
 def zero_mutable_fields(pkt, sending=False):
     """
     When using AH, all "mutable" fields must be "zeroed" before calculating
@@ -731,7 +753,8 @@ def zero_mutable_fields(pkt, sending=False):
                         opt.optdata = chr(0) * opt.optlen
             elif isinstance(next_hdr, IPv6ExtHdrRouting) and sending:
                 # The sender must order the field so that it appears as it
-                # will at the receiver, prior to performing the ICV computation.
+                # will at the receiver, prior to performing the ICV
+                # computation.
                 next_hdr.segleft = 0
                 if next_hdr.addresses:
                     final = next_hdr.addresses.pop()
@@ -745,6 +768,8 @@ def zero_mutable_fields(pkt, sending=False):
     return pkt
 
 #------------------------------------------------------------------------------
+
+
 class SecurityAssociation(object):
     """
     This class is responsible of "encryption" and "decryption" of IPsec packets.
@@ -808,7 +833,8 @@ class SecurityAssociation(object):
             self.auth_key = None
 
         if tunnel_header and not isinstance(tunnel_header, (IP, IPv6)):
-            raise TypeError('tunnel_header must be %s or %s' % (IP.name, IPv6.name))
+            raise TypeError('tunnel_header must be %s or %s' %
+                            (IP.name, IPv6.name))
         self.tunnel_header = tunnel_header
 
         if nat_t_header:
@@ -829,7 +855,8 @@ class SecurityAssociation(object):
             iv = self.crypt_algo.generate_iv()
         else:
             if len(iv) != self.crypt_algo.iv_size:
-                raise TypeError('iv length must be %s' % self.crypt_algo.iv_size)
+                raise TypeError('iv length must be %s' %
+                                self.crypt_algo.iv_size)
 
         esp = _ESPPlain(spi=self.spi, seq=seq_num or self.seq_num, iv=iv)
 
@@ -920,7 +947,8 @@ class SecurityAssociation(object):
         else:
             ip_header.plen = len(ip_header.payload) + len(ah) + len(payload)
 
-        signed_pkt = self.auth_algo.sign(ip_header / ah / payload, self.auth_key)
+        signed_pkt = self.auth_algo.sign(
+            ip_header / ah / payload, self.auth_key)
 
         # sequence number must always change, unless specified by the user
         if seq_num is None:

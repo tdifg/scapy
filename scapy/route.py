@@ -1,7 +1,7 @@
-## This file is part of Scapy
-## See http://www.secdev.org/projects/scapy for more informations
-## Copyright (C) Philippe Biondi <phil@secdev.org>
-## This program is published under a GPLv2 license
+# This file is part of Scapy
+# See http://www.secdev.org/projects/scapy for more informations
+# Copyright (C) Philippe Biondi <phil@secdev.org>
+# This program is published under a GPLv2 license
 
 """
 Routing and handling of network interfaces.
@@ -18,6 +18,7 @@ from scapy.arch import WINDOWS
 ## Routing/Interfaces stuff ##
 ##############################
 
+
 class Route:
     def __init__(self):
         self.resync()
@@ -33,13 +34,14 @@ class Route:
 
     def __repr__(self):
         rtlst = []
-        
-        for net,msk,gw,iface,addr in self.routes:
-	    rtlst.append((ltoa(net),
-                      ltoa(msk),
-                      gw,
-                      (iface.name if not isinstance(iface, basestring) else iface),
-                      addr))
+
+        for net, msk, gw, iface, addr in self.routes:
+            rtlst.append((ltoa(net),
+                          ltoa(msk),
+                          gw,
+                          (iface.name if not isinstance(
+                              iface, basestring) else iface),
+                          addr))
 
         return pretty_routes(rtlst,
                              [("Network", "Netmask", "Gateway", "Iface", "Output IP")])
@@ -47,20 +49,21 @@ class Route:
     def make_route(self, host=None, net=None, gw=None, dev=None):
         from scapy.arch import get_if_addr
         if host is not None:
-            thenet,msk = host,32
+            thenet, msk = host, 32
         elif net is not None:
-            thenet,msk = net.split("/")
+            thenet, msk = net.split("/")
             msk = int(msk)
         else:
-            raise Scapy_Exception("make_route: Incorrect parameters. You should specify a host or a net")
+            raise Scapy_Exception(
+                "make_route: Incorrect parameters. You should specify a host or a net")
         if gw is None:
-            gw="0.0.0.0"
+            gw = "0.0.0.0"
         if dev is None:
             if gw:
                 nhop = gw
             else:
                 nhop = thenet
-            dev,ifaddr,x = self.route(nhop)
+            dev, ifaddr, x = self.route(nhop)
         else:
             ifaddr = get_if_addr(dev)
         return (atol(thenet), itom(msk), gw, dev, ifaddr)
@@ -70,27 +73,25 @@ class Route:
         add(net="192.168.1.0/24",gw="1.2.3.4")
         """
         self.invalidate_cache()
-        self.routes.append(self.make_route(*args,**kargs))
+        self.routes.append(self.make_route(*args, **kargs))
 
-        
     def delt(self,  *args, **kargs):
         """delt(host|net, gw|dev)"""
         self.invalidate_cache()
-        route = self.make_route(*args,**kargs)
+        route = self.make_route(*args, **kargs)
         try:
-            i=self.routes.index(route)
+            i = self.routes.index(route)
             del(self.routes[i])
         except ValueError:
             warning("no matching route found")
-             
+
     def ifchange(self, iff, addr):
         self.invalidate_cache()
-        the_addr,the_msk = (addr.split("/")+["32"])[:2]
+        the_addr, the_msk = (addr.split("/") + ["32"])[:2]
         the_msk = itom(int(the_msk))
         the_rawaddr = atol(the_addr)
         the_net = the_rawaddr & the_msk
-        
-        
+
         for i, route in enumerate(self.routes):
             net, msk, gw, iface, addr = route
             if WINDOWS:
@@ -99,16 +100,14 @@ class Route:
             elif iff != iface:
                 continue
             if gw == '0.0.0.0':
-                self.routes[i] = (the_net,the_msk,gw,iface,the_addr)
+                self.routes[i] = (the_net, the_msk, gw, iface, the_addr)
             else:
-                self.routes[i] = (net,msk,gw,iface,the_addr)
+                self.routes[i] = (net, msk, gw, iface, the_addr)
         conf.netcache.flush()
-        
-                
 
     def ifdel(self, iff):
         self.invalidate_cache()
-        new_routes=[]
+        new_routes = []
         for rt in self.routes:
             if WINDOWS:
                 if iff.guid == rt[3].guid:
@@ -116,56 +115,54 @@ class Route:
             elif iff == rt[3]:
                 continue
             new_routes.append(rt)
-        self.routes=new_routes
-        
+        self.routes = new_routes
+
     def ifadd(self, iff, addr):
         self.invalidate_cache()
-        the_addr,the_msk = (addr.split("/")+["32"])[:2]
+        the_addr, the_msk = (addr.split("/") + ["32"])[:2]
         the_msk = itom(int(the_msk))
         the_rawaddr = atol(the_addr)
         the_net = the_rawaddr & the_msk
-        self.routes.append((the_net,the_msk,'0.0.0.0',iff,the_addr))
+        self.routes.append((the_net, the_msk, '0.0.0.0', iff, the_addr))
 
-
-    def route(self,dest,verbose=None):
+    def route(self, dest, verbose=None):
         if type(dest) is list and dest:
             dest = dest[0]
         if dest in self.cache:
             return self.cache[dest]
         if verbose is None:
-            verbose=conf.verb
+            verbose = conf.verb
         # Transform "192.168.*.1-5" to one IP of the set
         dst = dest.split("/")[0]
-        dst = dst.replace("*","0") 
+        dst = dst.replace("*", "0")
         while 1:
             l = dst.find("-")
             if l < 0:
                 break
-            m = (dst[l:]+".").find(".")
-            dst = dst[:l]+dst[l+m:]
+            m = (dst[l:] + ".").find(".")
+            dst = dst[:l] + dst[l + m:]
 
-            
         dst = atol(dst)
-        pathes=[]
-        for d,m,gw,i,a in self.routes:
-            if not a: # some interfaces may not currently be connected
+        pathes = []
+        for d, m, gw, i, a in self.routes:
+            if not a:  # some interfaces may not currently be connected
                 continue
             aa = atol(a)
             if aa == dst:
-                pathes.append((0xffffffff,(LOOPBACK_INTERFACE,a,"0.0.0.0")))
+                pathes.append((0xffffffff, (LOOPBACK_INTERFACE, a, "0.0.0.0")))
             if (dst & m) == (d & m):
-                pathes.append((m,(i,a,gw)))
+                pathes.append((m, (i, a, gw)))
         if not pathes:
             if verbose:
                 warning("No route found (no default route?)")
-            return LOOPBACK_INTERFACE,"0.0.0.0","0.0.0.0"
+            return LOOPBACK_INTERFACE, "0.0.0.0", "0.0.0.0"
         # Choose the more specific route (greatest netmask).
         # XXX: we don't care about metrics
         pathes.sort()
         ret = pathes[-1][1]
         self.cache[dest] = ret
         return ret
-            
+
     def get_if_bcast(self, iff):
         for net, msk, gw, iface, addr in self.routes:
             if net == 0:
@@ -175,13 +172,15 @@ class Route:
                     continue
             elif iff != iface:
                 continue
-            bcast = atol(addr)|(~msk&0xffffffff); # FIXME: check error in atol()
+            # FIXME: check error in atol()
+            bcast = atol(addr) | (~msk & 0xffffffff)
             return ltoa(bcast)
-        warning("No broadcast address found for iface %s\n" % iff);
+        warning("No broadcast address found for iface %s\n" % iff)
 
-conf.route=Route()
 
-#XXX use "with"
+conf.route = Route()
+
+# XXX use "with"
 _betteriface = conf.route.route("0.0.0.0", verbose=0)[0]
 if ((_betteriface if (isinstance(_betteriface, basestring) or _betteriface is None) else _betteriface.name) != LOOPBACK_NAME):
     conf.iface = _betteriface

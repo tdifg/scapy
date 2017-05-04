@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
-## This file is part of Scapy
-## This program is published under a GPLv2 license
+# This file is part of Scapy
+# This program is published under a GPLv2 license
 
 """
 Basic TLS server. A preferred ciphersuite may be provided as first argument.
@@ -14,8 +14,8 @@ will be preferred to any other suite the client might propose.
 import os
 import sys
 
-basedir = os.path.abspath(os.path.join(os.path.dirname(__file__),"../../"))
-sys.path=[basedir]+sys.path
+basedir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../"))
+sys.path = [basedir] + sys.path
 
 from scapy.layers.tls.automaton import TLSServerAutomaton
 
@@ -25,9 +25,7 @@ if len(sys.argv) == 2:
 else:
     pcs = None
 
-t = TLSServerAutomaton(mycert=basedir+'/test/tls/pki/srv_cert.pem',
-                       mykey=basedir+'/test/tls/pki/srv_key.pem',
+t = TLSServerAutomaton(mycert=basedir + '/test/tls/pki/srv_cert.pem',
+                       mykey=basedir + '/test/tls/pki/srv_key.pem',
                        preferred_ciphersuite=pcs)
 t.run()
-
-

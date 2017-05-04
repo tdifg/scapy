@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
-## This file is part of Scapy
-## This program is published under a GPLv2 license
+# This file is part of Scapy
+# This program is published under a GPLv2 license
 
 """
 Basic TLS client. A ciphersuite may be commanded via a first argument.
@@ -13,8 +13,8 @@ server at 127.0.0.1:4433, with suite TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA.
 import os
 import sys
 
-basedir = os.path.abspath(os.path.join(os.path.dirname(__file__),"../../"))
-sys.path=[basedir]+sys.path
+basedir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../"))
+sys.path = [basedir] + sys.path
 
 from scapy.layers.tls.automaton import TLSClientAutomaton
 from scapy.layers.tls.handshake import TLSClientHello
@@ -27,5 +27,3 @@ else:
 
 t = TLSClientAutomaton(client_hello=ch)
 t.run()
-
-

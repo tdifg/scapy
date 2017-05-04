@@ -1,14 +1,23 @@
-## This file is part of Scapy
-## See http://www.secdev.org/projects/scapy for more informations
-## Copyright (C) Philippe Biondi <phil@secdev.org>
-## This program is published under a GPLv2 license
+# This file is part of Scapy
+# See http://www.secdev.org/projects/scapy for more informations
+# Copyright (C) Philippe Biondi <phil@secdev.org>
+# This program is published under a GPLv2 license
 
 """
 Unit testing infrastructure for Scapy
 """
 
-import sys, getopt, imp, glob
-import bz2, base64, os.path, time, traceback, zlib, sha
+import sys
+import getopt
+import imp
+import glob
+import bz2
+import base64
+import os.path
+import time
+import traceback
+import zlib
+import sha
 from scapy.consts import WINDOWS
 
 
@@ -19,14 +28,15 @@ class Bunch:
 
 #### Import tool ####
 
+
 def import_module(name):
     name = os.path.realpath(name)
     thepath = os.path.dirname(name)
     name = os.path.basename(name)
     if name.endswith(".py"):
         name = name[:-3]
-    f,path,desc = imp.find_module(name,[thepath])
-    
+    f, path, desc = imp.find_module(name, [thepath])
+
     try:
         return imp.load_module(name, f, path, desc)
     finally:
@@ -41,21 +51,24 @@ class File:
         self.name = name
         self.local = local
         self.URL = URL
+
     def get_local(self):
         return bz2.decompress(base64.decodestring(self.local))
+
     def get_URL(self):
         return self.URL
+
     def write(self, dir):
         if dir:
             dir += "/"
-        open(dir+self.name,"w").write(self.get_local())
+        open(dir + self.name, "w").write(self.get_local())
 
-        
+
 # Embed a base64 encoded bziped version of js and css files
 # to work if you can't reach Internet.
 class External_Files:
     UTscapy_js = File("UTscapy.js", "http://www.secdev.org/projects/UTscapy/UTscapy.js",
-"""QlpoOTFBWSZTWWVijKQAAXxfgERUYOvAChIhBAC/79+qQAH8AFA0poANAMjQAAAG
+                      """QlpoOTFBWSZTWWVijKQAAXxfgERUYOvAChIhBAC/79+qQAH8AFA0poANAMjQAAAG
 ABo0NGEZNBo00BhgAaNDRhGTQaNNAYFURJinplGaKbRkJiekzSenqmpA0Gm1LFMp
 RUklVQlK9WUTZYpNFI1IiEWEFT09Sfj5uO+qO6S5DQwKIxM92+Zku94wL6V/1KTK
 an2c66Ug6SmVKy1ZIrgauxMVLF5xLH0lJRQuKlqLF10iatlTzqvw7S9eS3+h4lu3
@@ -64,8 +77,8 @@ GZyMgoOude3NJ1pQy8eo+X96IYZw+ynehsiPj73m0rnvQ3QXZ9BJQiZQYQ5/uNcl
 gueXo3kcYi94K6hSO3ldD2O/qJXOFqJ8o3TE2aQahxtQpCVUKQMvODHwu2YkaORY
 ZC6gihEallcHDIAtRPScBACAJnUggYhLDX6DEko7nC9GvAw5OcEkiyDUbLdiGCzD
 aXWMC2DuQ2Y6sGf6NcRuON7QSbhHsPc4KKmZ/xdyRThQkGVijKQ=""")
-    UTscapy_css = File("UTscapy.css","http://www.secdev.org/projects/UTscapy/UTscapy.css",
-"""QlpoOTFBWSZTWTbBCNEAAE7fgHxwSB//+Cpj2QC//9/6UAR+63dxbNzO3ccmtGEk
+    UTscapy_css = File("UTscapy.css", "http://www.secdev.org/projects/UTscapy/UTscapy.css",
+                       """QlpoOTFBWSZTWTbBCNEAAE7fgHxwSB//+Cpj2QC//9/6UAR+63dxbNzO3ccmtGEk
 pM0m1I9E/Qp6g9Q09TNQ9QDR6gMgAkiBFG9U9TEGRkGgABoABoBmpJkRAaAxD1AN
 Gh6gNADQBzAATJgATCYJhDAEYAEiQkwIyJk0n6qenpqeoaMUeo9RgIxp6pX78kfx
 Jx4MUhDHKEb2pJAYAelG1cybiZBBDipH8ocxNyHDAqTUxiQmIAEDE3ApIBUUECAT
@@ -87,10 +100,12 @@ WeXDoWEx2FMyyZRAB5QyCFnwYtwtWAQmmITY8aIM2SZyRnHH9Wi8+Sr2qyCscFYo
 vzM985aHXOHAxQN2UQZbQkUv3D4Vc+lyvalAffv3Tyg4ks3a22kPXiyeCGweviNX
 0K8TKasyOhGsVamTUAZBXfQVw1zmdS4rHDnbHgtIjX3DcCt6UIr0BHTYjdV0JbPj
 r1APYgXihjQwM2M83AKIhwQQJv/F3JFOFCQNsEI0QA==""")
+
     def get_local_dict(cls):
         return {x: y.name for (x, y) in cls.__dict__.iteritems()
                 if isinstance(y, File)}
     get_local_dict = classmethod(get_local_dict)
+
     def get_URL_dict(cls):
         return {x: y.URL for (x, y) in cls.__dict__.iteritems()
                 if isinstance(y, File)}
@@ -100,14 +115,15 @@ r1APYgXihjQwM2M83AKIhwQQJv/F3JFOFCQNsEI0QA==""")
 #### HELPER CLASSES FOR PARAMETRING OUTPUT FORMAT ####
 
 class EnumClass:
-    def from_string(cls,x):
+    def from_string(cls, x):
         return cls.__dict__[x.upper()]
     from_string = classmethod(from_string)
-    
+
+
 class Format(EnumClass):
-    TEXT  = 1
-    ANSI  = 2
-    HTML  = 3
+    TEXT = 1
+    ANSI = 2
+    HTML = 3
     LATEX = 4
     XUNIT = 5
 
@@ -117,6 +133,7 @@ class Format(EnumClass):
 class TestClass:
     def __getitem__(self, item):
         return getattr(self, item)
+
     def add_keywords(self, kws):
         if isinstance(kws, basestring):
             kws = [kws]
@@ -128,6 +145,7 @@ class TestClass:
                     pass
             else:
                 self.keywords.add(kwd)
+
 
 class TestCampaign(TestClass):
     def __init__(self, title):
@@ -141,21 +159,26 @@ class TestCampaign(TestClass):
         self.preexec = None
         self.preexec_output = None
         self.end_pos = 0
+
     def add_testset(self, testset):
         self.campaign.append(testset)
         testset.keywords.update(self.keywords)
+
     def startNum(self, beginpos):
         for ts in self:
             for t in ts:
                 t.num = beginpos
                 beginpos += 1
         self.end_pos = beginpos
+
     def __iter__(self):
         return self.campaign.__iter__()
+
     def all_tests(self):
         for ts in self:
             for t in ts:
                 yield t
+
 
 class TestSet(TestClass):
     def __init__(self, name):
@@ -165,11 +188,14 @@ class TestSet(TestClass):
         self.keywords = set()
         self.crc = None
         self.expand = 1
+
     def add_test(self, test):
         self.tests.append(test)
         test.keywords.update(self.keywords)
+
     def __iter__(self):
         return self.tests.__iter__()
+
 
 class UnitTest(TestClass):
     def __init__(self, name):
@@ -183,11 +209,13 @@ class UnitTest(TestClass):
         self.keywords = set()
         self.crc = None
         self.expand = 1
+
     def decode(self):
         self.test = self.test.decode("utf8", "ignore")
         self.output = self.output.decode("utf8", "ignore")
         self.comments = self.comments.decode("utf8", "ignore")
         self.result = self.result.decode("utf8", "ignore")
+
     def __nonzero__(self):
         return self.res
 
@@ -216,11 +244,13 @@ def parse_config_file(config_path, verb=3):
     }
 
     """
-    import json, unicodedata
+    import json
+    import unicodedata
     with open(config_path) as config_file:
         data = json.load(config_file, encoding="utf8")
         if verb > 2:
             print >>sys.stderr, "### Loaded config file", config_path
+
     def get_if_exist(key, default):
         return data[key] if key in data else default
     return Bunch(testfiles=get_if_exist("testfiles", []), onlyfailed=get_if_exist("onlyfailed", False),
@@ -232,9 +262,10 @@ def parse_config_file(config_path, verb=3):
 
 #### PARSE CAMPAIGN ####
 
+
 def parse_campaign_file(campaign_file):
     test_campaign = TestCampaign("Test campaign")
-    test_campaign.filename=  campaign_file.name
+    test_campaign.filename = campaign_file.name
     testset = None
     test = None
     testnb = 0
@@ -270,19 +301,20 @@ def parse_campaign_file(campaign_file):
                 test.test += l
     return test_campaign
 
+
 def dump_campaign(test_campaign):
-    print "#"*(len(test_campaign.title)+6)
+    print "#" * (len(test_campaign.title) + 6)
     print "## %(title)s ##" % test_campaign
-    print "#"*(len(test_campaign.title)+6)
+    print "#" * (len(test_campaign.title) + 6)
     if test_campaign.sha and test_campaign.crc:
         print "CRC=[%(crc)s] SHA=[%(sha)s]" % test_campaign
     print "from file %(filename)s" % test_campaign
     print
     for ts in test_campaign:
         if ts.crc:
-            print "+--[%s]%s(%s)--" % (ts.name,"-"*max(2,80-len(ts.name)-18),ts.crc)
+            print "+--[%s]%s(%s)--" % (ts.name, "-" * max(2, 80 - len(ts.name) - 18), ts.crc)
         else:
-            print "+--[%s]%s" % (ts.name,"-"*max(2,80-len(ts.name)-6))
+            print "+--[%s]%s" % (ts.name, "-" * max(2, 80 - len(ts.name) - 6))
         if ts.keywords:
             print "  kw=%s" % ",".join(ts.keywords)
         for t in ts:
@@ -293,15 +325,18 @@ def dump_campaign(test_campaign):
             if t.crc:
                 c = "[%(crc)s] " % t
             if c or k:
-                print "    %s%s" % (c,k) 
+                print "    %s%s" % (c, k)
 
 #### COMPUTE CAMPAIGN DIGESTS ####
+
 
 def crc32(x):
     return "%08X" % (0xffffffff & zlib.crc32(x))
 
+
 def sha1(x):
     return sha.sha(x).hexdigest().upper()
+
 
 def compute_campaign_digests(test_campaign):
     dc = ""
@@ -310,9 +345,9 @@ def compute_campaign_digests(test_campaign):
         for t in ts:
             dt = t.test.strip()
             t.crc = crc32(dt)
-            dts += b"\0"+dt
+            dts += b"\0" + dt
         ts.crc = crc32(dts)
-        dc += b"\0\x01"+dts
+        dc += b"\0\x01" + dts
     test_campaign.crc = crc32(dc)
     test_campaign.sha = sha1(open(test_campaign.filename).read())
 
@@ -326,16 +361,18 @@ def filter_tests_on_numbers(test_campaign, num):
         test_campaign.campaign = [ts for ts in test_campaign.campaign
                                   if ts.tests]
 
+
 def filter_tests_keep_on_keywords(test_campaign, kw):
     def kw_match(lst, kw):
         for k in lst:
             if k in kw:
                 return True
         return False
-    
+
     if kw:
         for ts in test_campaign:
             ts.tests = [t for t in ts.tests if kw_match(t.keywords, kw)]
+
 
 def filter_tests_remove_on_keywords(test_campaign, kw):
     def kw_match(lst, kw):
@@ -343,7 +380,7 @@ def filter_tests_remove_on_keywords(test_campaign, kw):
             if k in lst:
                 return True
         return False
-    
+
     if kw:
         for ts in test_campaign:
             ts.tests = [t for t in ts.tests if not kw_match(t.keywords, kw)]
@@ -360,19 +397,21 @@ def run_campaign(test_campaign, get_interactive_session, verb=3):
         # Add a route to 127.0.0.1 and ::1
         from scapy.arch.windows import route_add_loopback
         route_add_loopback()
-    passed=failed=0
+    passed = failed = 0
     if test_campaign.preexec:
-        test_campaign.preexec_output = get_interactive_session(test_campaign.preexec.strip())[0]
+        test_campaign.preexec_output = get_interactive_session(
+            test_campaign.preexec.strip())[0]
     for testset in test_campaign:
         for t in testset:
-            t.output,res = get_interactive_session(t.test.strip())
+            t.output, res = get_interactive_session(t.test.strip())
             the_res = False
             try:
                 if res is None or res:
-                    the_res= True
-            except Exception,msg:
-                t.output+="UTscapy: Error during result interpretation:\n"
-                t.output+="".join(traceback.format_exception(sys.exc_type, sys.exc_value, sys.exc_traceback,))
+                    the_res = True
+            except Exception, msg:
+                t.output += "UTscapy: Error during result interpretation:\n"
+                t.output += "".join(traceback.format_exception(sys.exc_type,
+                                                               sys.exc_value, sys.exc_traceback,))
             if the_res:
                 t.res = True
                 res = "passed"
@@ -384,12 +423,12 @@ def run_campaign(test_campaign, get_interactive_session, verb=3):
             t.result = res
             t.decode()
             if verb > 1:
-                print >>sys.stderr,"%(result)6s %(crc)s %(name)s" % t
+                print >>sys.stderr, "%(result)6s %(crc)s %(name)s" % t
     test_campaign.passed = passed
     test_campaign.failed = failed
     if verb:
-        print >>sys.stderr,"Campaign CRC=%(crc)s  SHA=%(sha)s" % test_campaign
-        print >>sys.stderr,"PASSED=%i FAILED=%i" % (passed, failed)
+        print >>sys.stderr, "Campaign CRC=%(crc)s  SHA=%(sha)s" % test_campaign
+        print >>sys.stderr, "PASSED=%i FAILED=%i" % (passed, failed)
     return failed
 
 
@@ -402,6 +441,7 @@ def info_line(test_campaign):
     else:
         return "Run %s from [%s] by UTscapy" % (time.ctime(), filename)
 
+
 def html_info_line(test_campaign):
     filename = test_campaign.filename
     if filename is None:
@@ -413,10 +453,10 @@ def html_info_line(test_campaign):
 #### CAMPAIGN TO something ####
 
 def campaign_to_TEXT(test_campaign):
-    output="%(title)s\n" % test_campaign
-    output += "-- "+info_line(test_campaign)+"\n\n"
+    output = "%(title)s\n" % test_campaign
+    output += "-- " + info_line(test_campaign) + "\n\n"
     output += "Passed=%(passed)i\nFailed=%(failed)i\n\n%(headcomments)s\n" % test_campaign
-    
+
     for testset in test_campaign:
         if any(t.expand for t in testset):
             output += "######\n## %(name)s\n######\n%(comments)s\n\n" % testset
@@ -425,12 +465,13 @@ def campaign_to_TEXT(test_campaign):
                     output += "###(%(num)03i)=[%(result)s] %(name)s\n%(comments)s\n%(output)s\n\n" % t
 
     return output
- 
+
+
 def campaign_to_ANSI(test_campaign):
-    output="%(title)s\n" % test_campaign
-    output += "-- "+info_line(test_campaign)+"\n\n"
+    output = "%(title)s\n" % test_campaign
+    output += "-- " + info_line(test_campaign) + "\n\n"
     output += "Passed=%(passed)i\nFailed=%(failed)i\n\n%(headcomments)s\n" % test_campaign
-    
+
     for testset in test_campaign:
         if any(t.expand for t in testset):
             output += "######\n## %(name)s\n######\n%(comments)s\n\n" % testset
@@ -439,13 +480,16 @@ def campaign_to_ANSI(test_campaign):
                     output += "###(%(num)03i)=[%(result)s] %(name)s\n%(comments)s\n%(output)s\n\n" % t
 
     return output
+
 
 def campaign_to_xUNIT(test_campaign):
-    output='<?xml version="1.0" encoding="UTF-8" ?>\n<testsuite>\n'
+    output = '<?xml version="1.0" encoding="UTF-8" ?>\n<testsuite>\n'
     for testset in test_campaign:
         for t in testset:
-            output += ' <testcase classname="%s"\n' % testset.name.encode("string_escape").replace('"',' ')
-            output += '           name="%s"\n' % t.name.encode("string_escape").replace('"',' ')
+            output += ' <testcase classname="%s"\n' % testset.name.encode(
+                "string_escape").replace('"', ' ')
+            output += '           name="%s"\n' % t.name.encode(
+                "string_escape").replace('"', ' ')
             output += '           duration="0">\n' % t
             if not t.res:
                 output += '<error><![CDATA[%(output)s]]></error>\n' % t
@@ -463,8 +507,9 @@ def campaign_to_HTML(test_campaign):
 
     if test_campaign.crc is not None and test_campaign.sha is not None:
         output += "CRC=<span class=crc>%(crc)s</span> SHA=<span class=crc>%(sha)s</span><br>" % test_campaign
-    output += "<small><em>"+html_info_line(test_campaign)+"</em></small>"
-    output += test_campaign.headcomments +  "\n<p>PASSED=%(passed)i FAILED=%(failed)i<p>\n\n" % test_campaign
+    output += "<small><em>" + html_info_line(test_campaign) + "</em></small>"
+    output += test_campaign.headcomments + \
+        "\n<p>PASSED=%(passed)i FAILED=%(failed)i<p>\n\n" % test_campaign
 
     for testset in test_campaign:
         output += "<h2>" % testset
@@ -474,7 +519,7 @@ def campaign_to_HTML(test_campaign):
         for t in testset:
             output += """<li class=%(result)s id="tst%(num)il">\n""" % t
             if t.expand == 2:
-                output +="""
+                output += """
 <span id="tst%(num)i+" class="button%(result)s" onClick="show('tst%(num)i')" style="POSITION: absolute; VISIBILITY: hidden;">+%(num)03i+</span>
 <span id="tst%(num)i-" class="button%(result)s" onClick="hide('tst%(num)i')">-%(num)03i-</span>
 """ % t
@@ -495,6 +540,7 @@ def campaign_to_HTML(test_campaign):
         output += "\n</ul>\n\n"
     return output
 
+
 def pack_html_campaigns(runned_campaigns, data, local=0, title=None):
     output = """
 <html>
@@ -513,7 +559,7 @@ def pack_html_campaigns(runned_campaigns, data, local=0, title=None):
         for ts in test_campaign:
             for t in ts:
                 output += """<span class=button%(result)s onClick="goto_id('tst%(num)il')">%(num)03i</span>\n""" % t
-        
+
     output += """</p>\n\n
 <link rel="stylesheet" href="%(UTscapy_css)s" type="text/css">
 <script language="JavaScript" src="%(UTscapy_js)s" type="text/javascript"></script>
@@ -524,14 +570,17 @@ def pack_html_campaigns(runned_campaigns, data, local=0, title=None):
 """
     out_dict = {'data': data, 'title': title if title else "UTScapy tests"}
     if local:
-        External_Files.UTscapy_js.write(os.path.dirname(test_campaign.output_file.name))
-        External_Files.UTscapy_css.write(os.path.dirname(test_campaign.output_file.name))
+        External_Files.UTscapy_js.write(
+            os.path.dirname(test_campaign.output_file.name))
+        External_Files.UTscapy_css.write(
+            os.path.dirname(test_campaign.output_file.name))
         out_dict.update(External_Files.get_local_dict())
     else:
         out_dict.update(External_Files.get_URL_dict())
 
     output %= out_dict
     return output
+
 
 def campaign_to_LATEX(test_campaign):
     output = r"""\documentclass{report}
@@ -556,7 +605,7 @@ def campaign_to_LATEX(test_campaign):
 
 """ % test_campaign
     output %= info_line(test_campaign)
-    
+
     for testset in test_campaign:
         output += "\\chapter{%(name)s}\n\n%(comments)s\n\n" % testset
         for t in testset:
@@ -576,11 +625,10 @@ def campaign_to_LATEX(test_campaign):
     return output
 
 
-
 #### USAGE ####
-                      
+
 def usage():
-    print >>sys.stderr,"""Usage: UTscapy [-m module] [-f {text|ansi|HTML|LaTeX}] [-o output_file] 
+    print >>sys.stderr, """Usage: UTscapy [-m module] [-f {text|ansi|HTML|LaTeX}] [-o output_file] 
                [-t testfile] [-T testfile] [-k keywords [-k ...]] [-K keywords [-K ...]]
                [-l] [-d|-D] [-F] [-q[q]] [-P preexecute_python_code]
                [-s /path/to/scapy] [-c configfile]
@@ -614,7 +662,7 @@ def execute_campaign(TESTFILE, OUTPUTFILE, PREEXEC, NUM, KW_OK, KW_KO, DUMP,
     # Report parameters
     if PREEXEC:
         test_campaign.preexec = PREEXEC
-    
+
     # Compute campaign CRC and SHA
     if CRC:
         compute_campaign_digests(test_campaign)
@@ -627,7 +675,6 @@ def execute_campaign(TESTFILE, OUTPUTFILE, PREEXEC, NUM, KW_OK, KW_KO, DUMP,
         filter_tests_remove_on_keywords(test_campaign, k)
 
     remove_empty_testsets(test_campaign)
-
 
     # Dump campaign
     if DUMP:
@@ -663,6 +710,7 @@ def execute_campaign(TESTFILE, OUTPUTFILE, PREEXEC, NUM, KW_OK, KW_KO, DUMP,
 
     return output, (result == 0), test_campaign
 
+
 def resolve_testfiles(TESTFILES):
     for tfile in TESTFILES[:]:
         if "*" in tfile:
@@ -670,11 +718,12 @@ def resolve_testfiles(TESTFILES):
             TESTFILES.extend(glob.glob(tfile))
     return TESTFILES
 
+
 def main(argv):
     import __builtin__
 
     # Parse arguments
-    
+
     FORMAT = Format.ANSI
     TESTFILE = sys.stdin
     OUTPUTFILE = sys.stdout
@@ -693,7 +742,7 @@ def main(argv):
     TESTFILES = []
     try:
         opts = getopt.getopt(argv, "o:t:T:c:f:hln:m:k:K:DdCFqP:s:")
-        for opt,optarg in opts[0]:
+        for opt, optarg in opts[0]:
             if opt == "-h":
                 usage()
             elif opt == "-F":
@@ -709,11 +758,11 @@ def main(argv):
             elif opt == "-s":
                 SCAPY = optarg
             elif opt == "-P":
-                GLOB_PREEXEC += "\n"+optarg
+                GLOB_PREEXEC += "\n" + optarg
             elif opt == "-f":
                 try:
                     FORMAT = Format.from_string(optarg)
-                except KeyError,msg:
+                except KeyError, msg:
                     raise getopt.GetoptError("Unknown output format %s" % msg)
             elif opt == "-t":
                 TESTFILES.append(optarg)
@@ -738,7 +787,7 @@ def main(argv):
                 KW_KO = [data.kw_ko]
                 try:
                     FORMAT = Format.from_string(data.format)
-                except KeyError,msg:
+                except KeyError, msg:
                     raise getopt.GetoptError("Unknown output format %s" % msg)
                 TESTFILES = resolve_testfiles(TESTFILES)
             elif opt == "-o":
@@ -764,18 +813,18 @@ def main(argv):
             print >>sys.stderr, "### Booting scapy..."
         try:
             from scapy import all as scapy
-        except ImportError,e:
-            raise getopt.GetoptError("cannot import [%s]: %s" % (SCAPY,e))
+        except ImportError, e:
+            raise getopt.GetoptError("cannot import [%s]: %s" % (SCAPY, e))
 
         for m in MODULES:
             try:
                 mod = import_module(m)
                 __builtin__.__dict__.update(mod.__dict__)
-            except ImportError,e:
-                raise getopt.GetoptError("cannot import [%s]: %s" % (m,e))
-                
-    except getopt.GetoptError,msg:
-        print >>sys.stderr,"ERROR:",msg
+            except ImportError, e:
+                raise getopt.GetoptError("cannot import [%s]: %s" % (m, e))
+
+    except getopt.GetoptError, msg:
+        print >>sys.stderr, "ERROR:", msg
         raise SystemExit
 
     autorun_func = {
@@ -784,10 +833,10 @@ def main(argv):
         Format.HTML: scapy.autorun_get_html_interactive_session,
         Format.LATEX: scapy.autorun_get_latex_interactive_session,
         Format.XUNIT: scapy.autorun_get_text_interactive_session,
-        }
+    }
 
     if VERB > 2:
-        print >>sys.stderr,"### Starting tests..."
+        print >>sys.stderr, "### Starting tests..."
 
     glob_output = ""
     glob_result = 0
@@ -801,7 +850,8 @@ def main(argv):
             pycode = PREEXEC_DICT[prex]
             del PREEXEC_DICT[prex]
             for gl in glob.iglob(prex):
-                _pycode = pycode.replace("%name%", os.path.splitext(os.path.split(gl)[1])[0])
+                _pycode = pycode.replace(
+                    "%name%", os.path.splitext(os.path.split(gl)[1])[0])
                 PREEXEC_DICT[gl] = _pycode
 
     pos_begin = 0
@@ -810,12 +860,12 @@ def main(argv):
     # Execute all files
     for TESTFILE in TESTFILES:
         if VERB > 2:
-            print >>sys.stderr,"### Loading:", TESTFILE
+            print >>sys.stderr, "### Loading:", TESTFILE
         PREEXEC = PREEXEC_DICT[TESTFILE] if TESTFILE in PREEXEC_DICT else GLOB_PREEXEC
         output, result, campaign = execute_campaign(open(TESTFILE), OUTPUTFILE,
-                                          PREEXEC, NUM, KW_OK, KW_KO,
-                                          DUMP, FORMAT, VERB, ONLYFAILED,
-                                          CRC, autorun_func, pos_begin)
+                                                    PREEXEC, NUM, KW_OK, KW_KO,
+                                                    DUMP, FORMAT, VERB, ONLYFAILED,
+                                                    CRC, autorun_func, pos_begin)
         runned_campaigns.append(campaign)
         pos_begin = campaign.end_pos
         if UNIQUE:
@@ -826,16 +876,18 @@ def main(argv):
             break
 
     if VERB > 2:
-            print >>sys.stderr,"### Writing output..."
+        print >>sys.stderr, "### Writing output..."
     # Concenate outputs
     if FORMAT == Format.HTML:
-        glob_output = pack_html_campaigns(runned_campaigns, glob_output, LOCAL, glob_title)
-    
+        glob_output = pack_html_campaigns(
+            runned_campaigns, glob_output, LOCAL, glob_title)
+
     OUTPUTFILE.write(glob_output.encode("utf8"))
     OUTPUTFILE.close()
 
     # Return state
     return glob_result
+
 
 if __name__ == "__main__":
     exit(main(sys.argv[1:]))

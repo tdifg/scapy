@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
-## This file is part of Scapy
-## This program is published under a GPLv2 license
+# This file is part of Scapy
+# This program is published under a GPLv2 license
 
 """
 TLS server used in unit tests.
@@ -17,8 +17,8 @@ import sys
 from contextlib import contextmanager
 from StringIO import StringIO
 
-basedir = os.path.abspath(os.path.join(os.path.dirname(__file__),"../../"))
-sys.path=[basedir]+sys.path
+basedir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../"))
+sys.path = [basedir] + sys.path
 
 from scapy.layers.tls.automaton import TLSServerAutomaton
 
@@ -32,6 +32,7 @@ def captured_output():
         yield sys.stdout, sys.stderr
     finally:
         sys.stdout, sys.stderr = old_out, old_err
+
 
 def check_output_for_data(out, err, expected_data):
     errored = err.getvalue()
@@ -47,12 +48,13 @@ def check_output_for_data(out, err, expected_data):
     else:
         return (True, None)
 
+
 def run_tls_test_server(expected_data, q):
     correct = False
     with captured_output() as (out, err):
         # Prepare automaton
-        t = TLSServerAutomaton(mycert=basedir+'/test/tls/pki/srv_cert.pem',
-                           mykey=basedir+'/test/tls/pki/srv_key.pem')
+        t = TLSServerAutomaton(mycert=basedir + '/test/tls/pki/srv_cert.pem',
+                               mykey=basedir + '/test/tls/pki/srv_key.pem')
         # Sync threads
         q.put(True)
         # Run server automaton

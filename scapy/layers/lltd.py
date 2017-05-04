@@ -302,6 +302,7 @@ class LLTDAttribute(Packet):
             return cls
         return SPECIFIC_CLASSES.get(cmd, cls)
 
+
 SPECIFIC_CLASSES = {}
 
 
@@ -797,6 +798,7 @@ class LargeTlvBuilder(object):
     To get the result, use .get_data()
 
     """
+
     def __init__(self):
         self.types_offsets = {}
         self.data = {}

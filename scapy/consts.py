@@ -1,9 +1,10 @@
-## This file is part of Scapy
-## See http://www.secdev.org/projects/scapy for more informations
-## Copyright (C) Philippe Biondi <phil@secdev.org>
-## This program is published under a GPLv2 license
+# This file is part of Scapy
+# See http://www.secdev.org/projects/scapy for more informations
+# Copyright (C) Philippe Biondi <phil@secdev.org>
+# This program is published under a GPLv2 license
 
-import os, inspect
+import os
+import inspect
 from sys import platform, maxsize
 import platform as platform_lib
 from scapy.error import *
@@ -27,25 +28,30 @@ except (ImportError, RuntimeError):
     MATPLOTLIB_DEFAULT_PLOT_KARGS = dict()
     log_loading.info("Can't import matplotlib. Won't be able to plot.")
 
+
 def test_pyx():
     """Returns if PyX is correctly installed or not"""
     try:
         with open(os.devnull, 'wb') as devnull:
-            r = subprocess.check_call(["pdflatex", "--version"], stdout=devnull, stderr=subprocess.STDOUT)
+            r = subprocess.check_call(
+                ["pdflatex", "--version"], stdout=devnull, stderr=subprocess.STDOUT)
     except:
         return False
     else:
         return r == 0
+
 
 try:
     import pyx
     if test_pyx():
         PYX = 1
     else:
-        log_loading.warning("PyX dependencies are not installed ! Please install TexLive or MikTeX.")
+        log_loading.warning(
+            "PyX dependencies are not installed ! Please install TexLive or MikTeX.")
         PYX = 0
 except ImportError:
-    log_loading.info("Can't import PyX. Won't be able to use psdump() or pdfdump().")
+    log_loading.info(
+        "Can't import PyX. Won't be able to use psdump() or pdfdump().")
     PYX = 0
 
 
@@ -74,6 +80,7 @@ else:
 
 # Will be different on Windows
 LOOPBACK_INTERFACE = LOOPBACK_NAME
+
 
 def parent_function():
     return inspect.getouterframes(inspect.currentframe())

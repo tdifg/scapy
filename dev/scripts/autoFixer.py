@@ -9,6 +9,7 @@ import getopt
 import glob2
 import re
 
+
 def main():
     tabsize = 8
     try:
@@ -23,11 +24,12 @@ def main():
     files = []
     for arg in args:
         files.extend(glob2.glob(arg))
-    
+
     for filename in files:
         if "autoFixer" in filename or "build" in filename:
             continue
         process(filename, tabsize)
+
 
 # Utils, regexes
 r1_ = r'([( ,=])(?<![b])\"(([^\n\\\"]|\\.)*(\\x|\\0)([^\n\\\"]|\\.)*)\"'
@@ -37,6 +39,7 @@ r2_ = r"([( ,=])(?<![b])\'(([^\n\\\']|\\.)*(\\x|\\0)([^\n\\\']|\\.)*)\'"
 r1_r = r'\g<1>b"\2"'
 r2_r = r"\g<1>b'\2'"
 #r3_r = r"b\1\1\2"
+
 
 def process(filename, tabsize):
     try:
@@ -60,6 +63,7 @@ def process(filename, tabsize):
     f.write(newtext)
     f.close()
     print filename
+
 
 if __name__ == '__main__':
     main()
